@@ -1,0 +1,47 @@
+import cv2
+import pytesseract
+from PIL import Image
+
+# Function to capture an image from the USB camera
+def capture_image():
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("Failed to open the USB camera.")
+        return None
+
+    ret, frame = cap.read()
+
+    cap.release()
+
+    if not ret:
+        print("Failed to capture frame from the USB camera.")
+        return None
+
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Save the image to a file
+    cv2.imwrite('captured_image.png', gray)
+
+    return True
+
+# Function to extract text from the captured image
+def extract_text():
+    # Load the captured image
+    image = Image.open('captured_image.png')
+
+    # Apply OCR to extract text
+    text = pytesseract.image_to_string(image)
+
+    # Print the extracted text
+    print("Extracted Text:")
+    print(text)
+
+    # Display the captured image
+    image.show()
+
+# Capture an image from the USB camera
+if capture_image():
+    # Extract text from the captured image
+    extract_text()
