@@ -1,0 +1,49 @@
+#with repeating button of the process#
+
+import cv2
+import pytesseract
+from PIL import Image
+import matplotlib.pyplot as plt
+
+def capture_and_extract():
+    # Initialize the camera
+    cap = cv2.VideoCapture(1)  # 0 represents the default camera (built-in webcam)
+
+    # Check if the camera is opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open the camera")
+        return
+
+    try:
+        while True:
+            # Capture a frame from the camera
+            ret, frame = cap.read()
+
+            # Convert the OpenCV frame to a PIL Image
+            pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+            # Use pytesseract to extract text from the image
+            extracted_text = pytesseract.image_to_string(pil_image)
+
+            # Display the captured image and extracted text
+            plt.imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            plt.axis('off')
+            plt.title("Extracted Text:")
+            plt.show()
+
+            print("\nExtracted Text:")
+            print(extracted_text)
+
+            # Prompt user to press Enter to capture another image and extract text
+            input("Press Enter to capture another image and extract text...")
+
+    except KeyboardInterrupt:
+        # Stop the loop when the user presses Ctrl + C
+        print("Process interrupted.")
+    finally:
+        # Release the camera
+        cap.release()
+        cv2.destroyAllWindows()
+
+# Start the recurring process
+capture_and_extract()
