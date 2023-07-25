@@ -1,0 +1,88 @@
+#button and windows for picture and results#
+
+import cv2
+import pytesseract
+from PIL import Image
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog
+
+def capture_and_extract():
+    # Initialize the camera
+    cap = cv2.VideoCapture(1)  # 0 represents the default camera (built-in webcam)
+
+    # Check if the camera is opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open the camera")
+        return
+
+    # Create the main GUI window
+    root = tk.Tk()
+    root.title("Camera Capture and Text Extraction")
+
+    # Create the result display window
+    result_window = tk.Toplevel(root)
+    result_window.title("Extracted Text Results")
+    result_text = tk.Text(result_window, wrap=tk.WORD, width=50, height=20)
+    result_text.pack()
+
+    # Create a list to store the extracted text from each image
+    all_extracted_text = []
+    iteration_count = 1
+
+    def process_image():
+        # Capture a frame from the camera
+        ret, frame = cap.read()
+
+        # Convert the OpenCV frame to a PIL Image
+        pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+        # Use pytesseract to extract text from the image
+        extracted_text = pytesseract.image_to_string(pil_image)
+
+        # Append the extracted text along with the iteration number to the list
+        nonlocal iteration_count  # Mark 'iteration_count' as nonlocal
+        all_extracted_text.append(f"Result #{iteration_count}\n{extracted_text}\n")
+        iteration_count += 1
+
+        # Update the result display window
+        result_text.delete(1.0, tk.END)
+        result_text.insert(tk.END, "\n".join(all_extracted_text))
+
+        # Display the captured image
+        cv2.imshow('Captured Image', frame)
+
+    def save_results():
+        # Prompt user to choose a file location to save the results
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
+
+        if file_path:
+            # Write the extracted text to the file
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.writelines(all_extracted_text)
+
+            print("Results saved to:", file_path)
+
+    def on_capture_click():
+        process_image()
+
+    def on_save_click():
+        save_results()
+
+    # Create the Capture button
+    capture_button = ttk.Button(root, text="Capture Image", command=on_capture_click)
+    capture_button.pack(pady=10)
+
+    # Create the Save button
+    save_button = ttk.Button(root, text="Save Results to .txt", command=on_save_click)
+    save_button.pack(pady=5)
+
+    # Run the GUI main loop
+    root.mainloop()
+
+    # Release the camera
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Start the GUI and the recurring process
+capture_and_extract()
