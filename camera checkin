@@ -1,0 +1,20 @@
+import cv2
+import matplotlib.pyplot as plt
+
+# Initialize the camera
+cap = cv2.VideoCapture(0)  # 0 represents the default camera (built-in webcam)
+
+# Check if the camera is opened successfully
+if not cap.isOpened():
+    print("Error: Could not open the camera")
+else:
+    # Capture a frame from the camera
+    ret, frame = cap.read()
+
+    # Release the camera
+    cap.release()
+
+    # Display the captured image
+    plt.imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    plt.axis('off')
+    plt.show()
