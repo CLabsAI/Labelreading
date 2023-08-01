@@ -1,6 +1,8 @@
 from googleapiclient.discovery import build
 import base64
-import json
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Your API key
 api_key = 'AIzaSyDRB4CbKeF9ORqFpjHuPAHyY-S-O-UpVxc'
@@ -9,7 +11,7 @@ api_key = 'AIzaSyDRB4CbKeF9ORqFpjHuPAHyY-S-O-UpVxc'
 service = build('vision', 'v1', developerKey=api_key)
 
 # Path to your image file
-image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/michelin sujo.jpeg'
+image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/pneumodelo.jpg'
 
 # Open the image file and encode it in base64
 with open(image_path, 'rb') as image_file:
@@ -35,3 +37,18 @@ text = response['responses'][0]['textAnnotations'][0]['description']
 
 # Print the extracted text
 print(text)
+
+# Load the original image
+image = cv2.imread(image_path)
+
+# Loop over the text annotations
+for text in response['responses'][0]['textAnnotations'][1:]:
+    # Get the vertices of the bounding box
+    vertices = [(vertex['x'], vertex['y']) for vertex in text['boundingPoly']['vertices']]
+    
+    # Draw the bounding box
+    cv2.polylines(image, [np.array(vertices)], True, (0, 255, 0), 2)
+
+# Display the image
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.show()
