@@ -1,0 +1,37 @@
+from googleapiclient.discovery import build
+import base64
+import json
+
+# Your API key
+api_key = 'AIzaSyDRB4CbKeF9ORqFpjHuPAHyY-S-O-UpVxc'
+
+# Build the Vision API client
+service = build('vision', 'v1', developerKey=api_key)
+
+# Path to your image file
+image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/michelin sujo.jpeg'
+
+# Open the image file and encode it in base64
+with open(image_path, 'rb') as image_file:
+    encoded_image = base64.b64encode(image_file.read()).decode('UTF-8')
+
+# Create the request body
+request_body = {
+    'requests': [{
+        'image': {
+            'content': encoded_image
+        },
+        'features': [{
+            'type': 'TEXT_DETECTION'
+        }]
+    }]
+}
+
+# Call the Vision API
+response = service.images().annotate(body=request_body).execute()
+
+# Extract the text from the response
+text = response['responses'][0]['textAnnotations'][0]['description']
+
+# Print the extracted text
+print(text)
