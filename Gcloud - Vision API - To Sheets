@@ -1,0 +1,96 @@
+from googleapiclient.discovery import build
+import base64
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import re
+import os
+import pickle
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+
+# Your Vision API key
+vision_api_key = 'AIzaSyDRB4CbKeF9ORqFpjHuPAHyY-S-O-UpVxc'
+
+# Build the Vision API client
+vision_service = build('vision', 'v1', developerKey=vision_api_key)
+
+# Path to your image file
+image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/2723-2.jpg'
+
+# Open the image file and encode it in base64
+with open(image_path, 'rb') as image_file:
+    encoded_image = base64.b64encode(image_file.read()).decode('UTF-8')
+
+# Create the request body
+request_body = {
+    'requests': [{
+        'image': {
+            'content': encoded_image
+        },
+        'features': [{
+            'type': 'TEXT_DETECTION'
+        }]
+    }]
+}
+
+# Call the Vision API
+response = vision_service.images().annotate(body=request_body).execute()
+
+# Extract the text from the response
+text = response['responses'][0]['textAnnotations'][0]['description']
+
+# Use a regular expression to extract the pattern
+pattern = re.search(r'DOT .* MADE IN BRAZIL', text)
+
+if pattern is not None:
+    extracted_text = pattern.group()
+    print(extracted_text)
+else:
+    print('Pattern not found')
+
+# Load the original image
+image = cv2.imread(image_path)
+
+# Loop over the text annotations
+for text in response['responses'][0]['textAnnotations'][1:]:
+    # Get the vertices of the bounding box
+    vertices = [(vertex['x'], vertex['y']) for vertex in text['boundingPoly']['vertices']]
+    
+    # Draw the bounding box
+    cv2.polylines(image, [np.array(vertices)], True, (0, 255, 0), 2)
+
+# Display the image
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.show()
+
+# Google Sheets API
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SPREADSHEET_ID = '1qMGdUnf9elwG6JAVa8Zojcype6UpaUCdk64sDESnIk0'  # Replace with your Spreadsheet ID
+RANGE_NAME = 'IN'  # Replace with your Sheet name
+
+creds = None
+if os.path.exists('token.pickle'):
+    with open('token.pickle', 'rb') as token:
+        creds = pickle.load(token)
+if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+    else:
+        flow = InstalledAppFlow.from_client_secrets_file(
+            'credentials.json', SCOPES)
+        creds = flow.run_local_server(port=0)
+    with open('token.pickle', 'wb') as token:
+        pickle.dump(creds, token)
+
+sheets_service = build('sheets', 'v4', credentials=creds)
+
+# Call the Sheets API
+sheet = sheets_service.spreadsheets()
+values = [[extracted_text]]
+body = {'values': values}
+result = sheet.values().append(
+    spreadsheetId=SPREADSHEET_ID,
+    range=RANGE_NAME,
+    valueInputOption='USER_ENTERED',
+    body=body).execute()
