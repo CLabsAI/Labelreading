@@ -16,7 +16,7 @@ vision_api_key = 'AIzaSyDRB4CbKeF9ORqFpjHuPAHyY-S-O-UpVxc'
 vision_service = build('vision', 'v1', developerKey=vision_api_key)
 
 # Path to your image file
-image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/bridge2.jpeg'
+image_path = 'C:/Users/pasin/Desktop/label reading/fotos pneus/bridge1.jpeg'
 
 # Open the image file and encode it in base64
 with open(image_path, 'rb') as image_file:
@@ -43,12 +43,11 @@ text = response['responses'][0]['textAnnotations'][0]['description']
 # Initialize extracted_text
 extracted_text = ""
 
-# Initialize extracted_text
-extracted_text = ""
-
 # Use a regular expression to extract the pattern
-pattern1 = re.search(r'(DOT \d+ EA \w+) \((\d+)\) MADE IN BRAZIL', text)
+# This pattern is more flexible with parentheses and spaces
+pattern1 = re.search(r'(DOT \d+ EA \w+X) ?\(?(\d+)\)?', text)
 pattern2 = re.search(r'(DOT \w+ \d+DIA \d+)', text)
+pattern3 = re.search(r'(DOT \d+ EA) ?\(?(\w+X) ?\(?(\d+)\)?', text)
 
 if pattern1:
     # Format the captured components to the desired output
@@ -56,6 +55,10 @@ if pattern1:
     print(extracted_text)
 elif pattern2:
     extracted_text = pattern2.group(1)
+    print(extracted_text)
+elif pattern3:
+    # Format the captured components to the desired output for the third pattern
+    extracted_text = f"{pattern3.group(1)} {pattern3.group(2)} {pattern3.group(3)}"
     print(extracted_text)
 else:
     print('Pattern not found')
@@ -107,3 +110,4 @@ result = sheet.values().append(
     range=RANGE_NAME,
     valueInputOption='USER_ENTERED',
     body=body).execute()
+
