@@ -44,14 +44,13 @@ text = response['responses'][0]['textAnnotations'][0]['description']
 extracted_text = ""
 
 # Use a regular expression to extract the pattern
-# This pattern is more flexible with parentheses and spaces
-pattern1 = re.search(r'(DOT \d+ EA \w+X) ?\(?(\d+)\)?', text)
+pattern1 = re.search(r'(1B8|188) (\d+ \d+JX|\d+ \d+-\d) ?\(?(\d+)\)?', text)
 pattern2 = re.search(r'(DOT \w+ \d+DIA \d+)', text)
 pattern3 = re.search(r'(DOT \d+ EA) ?\(?(\w+X) ?\(?(\d+)\)?', text)
 
 if pattern1:
     # Format the captured components to the desired output
-    extracted_text = f"{pattern1.group(1)} {pattern1.group(2)}"
+    extracted_text = f"DOT {pattern1.group(1)} {pattern1.group(2).replace('-', 'JX')} {pattern1.group(3)}"
     print(extracted_text)
 elif pattern2:
     extracted_text = pattern2.group(1)
